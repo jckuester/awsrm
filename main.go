@@ -209,7 +209,7 @@ func printHelp(fs *flag.FlagSet) {
 }
 
 const help = `
-awsrm - Remove AWS resources via the CLI.
+awsrm - A remove command for AWS resources.
 
 USAGE:
   $ awsrm [flags] <resource_type> <resource_id> <profile> <region>
