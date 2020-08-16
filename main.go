@@ -117,7 +117,11 @@ func mainExitCode() int {
 
 		// always show the resources that would be affected before deleting anything
 		for _, r := range resourcesWithUpdatedState {
-			log.WithField("id", r.ID).Warn(internal.Pad(r.Type))
+			log.WithFields(log.Fields{
+				"id":      r.ID,
+				"profile": r.Profile,
+				"region":  r.Region,
+			}).Warn(internal.Pad(r.Type))
 		}
 
 		if len(resourcesWithUpdatedState) == 0 {
