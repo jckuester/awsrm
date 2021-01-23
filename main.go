@@ -25,10 +25,10 @@ func main() {
 }
 
 func mainExitCode() int {
-	var dryRun bool
-	var force bool
 	var logDebug bool
 	var version bool
+	var profile string
+	var region string
 
 	flags := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
@@ -36,9 +36,9 @@ func mainExitCode() int {
 		printHelp(flags)
 	}
 
-	flags.BoolVar(&dryRun, "dry-run", false, "Show what would be destroyed")
-	flags.BoolVar(&force, "force", false, "Destroy without asking for confirmation")
 	flags.BoolVar(&logDebug, "debug", false, "Enable debug logging")
+	flags.StringVarP(&profile, "profile", "p", "", "The AWS profile for the account to delete resources in")
+	flags.StringVarP(&region, "region", "r", "", "The region to delete resources in")
 	flags.BoolVar(&version, "version", false, "Show application version")
 
 	_ = flags.Parse(os.Args[1:])
@@ -62,101 +62,124 @@ func mainExitCode() int {
 	}
 
 	var resources []awsls.Resource
+	var err error
+	var confirmDevice *os.File
+	var clientKeys []util.AWSClientKey
 
 	if isInputFromPipe() {
-		log.Debug("input is from pipe")
+		log.Debug("input via pipe")
 
-		readResources, err := readResources(os.Stdin)
+		resources, err = readResources(os.Stdin)
 		if err != nil {
-			log.Fatal(err.Error())
+			fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
+			return 1
 		}
-
-		resources = readResources
 
 		err = os.Stdin.Close()
 		if err != nil {
 			fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
-
 			return 1
+		}
+
+		confirmDevice, err = os.Open("/dev/tty")
+		if err != nil {
+			log.Fatalf("can't open /dev/tty: %s", err)
 		}
 	} else {
-		if len(args) < 3 {
-			fmt.Fprint(os.Stderr, color.RedString("Error: not enough arguments given\n"))
-			printHelp(flags)
+		log.Debug("input via args")
 
+		if len(args) < 2 {
+			printHelp(flags)
 			return 1
 		}
 
-		resources = append(resources, awsls.Resource{
-			Type:    args[0],
-			ID:      args[1],
-			Profile: args[2],
-			Region:  args[3],
-		})
-	}
+		var profiles []string
+		var regions []string
 
-	var clientKeys []util.AWSClientKey
-	for _, r := range resources {
-		clientKeys = append(clientKeys, util.AWSClientKey{
-			Profile: r.Profile,
-			Region:  r.Region,
-		})
+		if profile != "" {
+			profiles = []string{profile}
+		} else {
+			env, ok := os.LookupEnv("AWS_PROFILE")
+			if ok {
+				profiles = []string{env}
+			}
+		}
+
+		if region != "" {
+			regions = []string{region}
+		}
+
+		clients, err := util.NewAWSClientPool(profiles, regions)
+		if err != nil {
+			fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
+			return 1
+		}
+
+		rType := args[0]
+		for _, client := range clients {
+			for _, id := range args[1:] {
+				resources = append(resources, awsls.Resource{
+					Type:    rType,
+					ID:      id,
+					Profile: client.Profile,
+					Region:  client.Region,
+				})
+			}
+		}
+
+		for k := range clients {
+			clientKeys = append(clientKeys, k)
+		}
+
+		confirmDevice = os.Stdin
 	}
 
 	providers, err := util.NewProviderPool(clientKeys)
 	if err != nil {
 		fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
-
 		return 1
 	}
 
 	resourcesWithUpdatedState := resource.GetStates(resources, providers)
 
-	if !force {
-		internal.LogTitle("showing resources that would be deleted (dry run)")
+	internal.LogTitle("showing resources that would be deleted (dry run)")
 
-		// always show the resources that would be affected before deleting anything
-		for _, r := range resourcesWithUpdatedState {
-			log.WithFields(log.Fields{
-				"id":      r.ID,
-				"profile": r.Profile,
-				"region":  r.Region,
-			}).Warn(internal.Pad(r.Type))
-		}
-
-		if len(resourcesWithUpdatedState) == 0 {
-			internal.LogTitle("all resources have already been deleted")
-			return 0
-		}
-
-		internal.LogTitle(fmt.Sprintf("total number of resources that would be deleted: %d",
-			len(resourcesWithUpdatedState)))
+	// always show the resources that would be affected before deleting anything
+	for _, r := range resourcesWithUpdatedState {
+		log.WithFields(log.Fields{
+			"id":      r.ID,
+			"profile": r.Profile,
+			"region":  r.Region,
+		}).Warn(internal.Pad(r.Type))
 	}
 
-	if !dryRun {
-		tty, err := os.Open("/dev/tty")
-		if err != nil {
-			log.Fatalf("can't open /dev/tty: %s", err)
-		}
-
-		if !internal.UserConfirmedDeletion(tty, force) {
-			return 0
-		}
-
-		internal.LogTitle("Starting to delete resources")
-
-		numDeletedResources := terradozerRes.DestroyResources(
-			convertToDestroyableResources(resourcesWithUpdatedState), 5)
-
-		internal.LogTitle(fmt.Sprintf("total number of deleted resources: %d", numDeletedResources))
+	if len(resourcesWithUpdatedState) == 0 {
+		internal.LogTitle("all resources have already been deleted")
+		return 0
 	}
+
+	internal.LogTitle(fmt.Sprintf("total number of resources that would be deleted: %d",
+		len(resourcesWithUpdatedState)))
+
+	if !internal.UserConfirmedDeletion(confirmDevice, false) {
+		return 0
+	}
+
+	internal.LogTitle("Starting to delete resources")
+
+	numDeletedResources := terradozerRes.DestroyResources(
+		convertToDestroyableResources(resourcesWithUpdatedState), 5)
+
+	internal.LogTitle(fmt.Sprintf("total number of deleted resources: %d", numDeletedResources))
 
 	return 0
 }
 
 func isInputFromPipe() bool {
 	fileInfo, _ := os.Stdin.Stat()
-	return fileInfo.Mode()&os.ModeCharDevice == 0
+	log.Debugf("%v\n", fileInfo.Mode())
+
+	return fileInfo.Mode()&os.ModeNamedPipe != 0
 }
 
 func readResources(r io.Reader) ([]awsls.Resource, error) {
@@ -216,7 +239,22 @@ const help = `
 awsrm - A remove command for AWS resources.
 
 USAGE:
-  $ awsrm [flags] <resource_type> <resource_id> <profile> <region>
+  $ awsrm [flags] <type> <id> [<id>...]
+
+The resource type and some ID(s) are required arguments to
+delete resource(s). If no profile and/or region for an AWS account is given,
+credentials will be searched for by the usual precedence of the
+AWS CLI: environment variables, AWS credentials file, etc.
+
+Resources in multiple accounts and regions can be filtered and deleted by piping
+the output of awsls, for example, through grep to awsrm:
+
+  $ awsls [profile/region flags] vpc -a tags | egrep 'Name=foo' | awsrm
+
+For supported resource types and a full help text,
+see the README in the GitHub repository
+https://github.com/jckuester/awsrm and
+https://github.com/jckuester/awsls.
 
 FLAGS:
 `

@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/apex/log"
 )
@@ -24,7 +25,7 @@ func UserConfirmedDeletion(r io.Reader, force bool) bool {
 		log.Fatal(err.Error())
 	}
 
-	if response == "YES" {
+	if strings.ToLower(response) == "yes" {
 		return true
 	}
 
