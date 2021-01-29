@@ -1,0 +1,18 @@
+dist: bionic
+
+language: go
+
+go:
+  - 1.15.x
+
+before_install:
+  - ./before_ci.sh
+
+install:
+  - make setup
+
+script:
+  - make ci
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

@@ -1,0 +1,40 @@
+builds:
+  - goos:
+      - darwin
+      - windows
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
+    env:
+      - CGO_ENABLED=0
+    ldflags: -s -w -X github.com/jckuester/awsrm/internal.version={{.Version}} -X github.com/jckuester/awsrm/internal.commit={{.ShortCommit}} -X github.com/jckuester/awsrm/internal.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+
+brews:
+  - tap:
+      owner: jckuester
+      name: homebrew-tap
+    homepage: "https://github.com/jckuester/awsrm"
+    description: "A remove command for AWS resources"
+    folder: Formula
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
