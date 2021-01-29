@@ -58,6 +58,7 @@ func getEnvOrDefault(t *testing.T, envName, defaultValue string) string {
 		t.Logf("env %s not set, therefore using the following default value: %s",
 			envName, defaultValue)
 	}
+
 	return varValue
 }
 
