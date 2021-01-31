@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -129,8 +130,8 @@ func TestAcc_InputPipedFromAwsls(t *testing.T) {
 			AssertVpcExists(t, vpc4, testVars.AWSProfile2, testVars.AWSRegion2)
 			actualLogs := logBuffer.String()
 
-			for _, unexpectedLogEntry := range tc.unexpectedLogs {
-				assert.NotContains(t, actualLogs, unexpectedLogEntry)
+			for _, expectedLogEntry := range tc.expectedLogs {
+				assert.Regexp(t, regexp.MustCompile(expectedLogEntry), actualLogs)
 			}
 
 			for _, unexpectedLogEntry := range tc.unexpectedLogs {

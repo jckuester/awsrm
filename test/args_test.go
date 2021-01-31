@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"testing"
 
 	"github.com/apex/log"
@@ -22,7 +23,7 @@ const (
 	packagePath = "github.com/jckuester/awsrm"
 )
 
-func TestAcc_Args(t *testing.T) {
+func TestAcc_Args_UserConfirmation(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	if testing.Short() {
@@ -73,6 +74,18 @@ func TestAcc_Args(t *testing.T) {
 				"TOTAL NUMBER OF DELETED RESOURCES:",
 			},
 		},
+		//{
+		//	name:      "dry run",
+		//	expectedLogs: []string{
+		//		"SHOWING RESOURCES THAT WOULD BE DELETED (DRY RUN)",
+		//		"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
+		//	},
+		//	unexpectedLogs: []string{
+		//		"STARTING TO DELETE RESOURCES",
+		//		"TOTAL NUMBER OF DELETED RESOURCES:",
+		//		"Are you sure you want to delete these resources (cannot be undone)? Only YES will be accepted.",
+		//	},
+		//},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -92,11 +105,10 @@ func TestAcc_Args(t *testing.T) {
 			actualVpcID2 := terraform.Output(t, terraformOptions, "vpc_id2")
 			AssertVpcExists(t, actualVpcID2, testVars.AWSProfile1, testVars.AWSRegion1)
 
-			logBuffer, err := runBinary(t, tc.userInput,
+			logBuffer := runBinary(t, tc.userInput,
 				"-p", testVars.AWSProfile1,
 				"-r", testVars.AWSRegion1,
 				"aws_vpc", actualVpcID1)
-			assert.NoError(t, err)
 
 			if tc.expectResourceIsDeleted {
 				AssertVpcDeleted(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
@@ -120,7 +132,106 @@ func TestAcc_Args(t *testing.T) {
 	}
 }
 
-func runBinary(t *testing.T, userInput string, args ...string) (*bytes.Buffer, error) {
+func TestAcc_Args_MultipleResourceIDs(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	if testing.Short() {
+		t.Skip("Skipping acceptance test.")
+	}
+
+	testVars := Init(t)
+
+	terraformDir := "./test-fixtures/vpc"
+
+	terraformOptions := GetTerraformOptions(terraformDir, testVars)
+
+	defer terraform.Destroy(t, terraformOptions)
+
+	terraform.InitAndApply(t, terraformOptions)
+
+	actualVpcID1 := terraform.Output(t, terraformOptions, "vpc_id1")
+	AssertVpcExists(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	actualVpcID2 := terraform.Output(t, terraformOptions, "vpc_id2")
+	AssertVpcExists(t, actualVpcID2, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	actualVpcID3 := terraform.Output(t, terraformOptions, "vpc_id3")
+	AssertVpcExists(t, actualVpcID3, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	logBuffer := runBinary(t, "yes\n",
+		"-p", testVars.AWSProfile1,
+		"-r", testVars.AWSRegion1,
+		"aws_vpc", actualVpcID1, actualVpcID2, actualVpcID3)
+
+	AssertVpcDeleted(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
+	AssertVpcDeleted(t, actualVpcID2, testVars.AWSProfile1, testVars.AWSRegion1)
+	AssertVpcDeleted(t, actualVpcID3, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	actualLogs := logBuffer.String()
+
+	expectedLogs := []string{
+		"TOTAL NUMBER OF DELETED RESOURCES: 3",
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1),
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			actualVpcID2, testVars.AWSProfile1, testVars.AWSRegion1),
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			actualVpcID2, testVars.AWSProfile1, testVars.AWSRegion1),
+	}
+
+	for _, expectedLogEntry := range expectedLogs {
+		assert.Regexp(t, regexp.MustCompile(expectedLogEntry), actualLogs)
+	}
+
+	fmt.Println(actualLogs)
+}
+
+func TestAcc_Args_NonExistingResourceID(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	if testing.Short() {
+		t.Skip("Skipping acceptance test.")
+	}
+
+	testVars := Init(t)
+
+	terraformDir := "./test-fixtures/vpc"
+
+	terraformOptions := GetTerraformOptions(terraformDir, testVars)
+
+	defer terraform.Destroy(t, terraformOptions)
+
+	terraform.InitAndApply(t, terraformOptions)
+
+	actualVpcID1 := terraform.Output(t, terraformOptions, "vpc_id1")
+	AssertVpcExists(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	logBuffer := runBinary(t, "yes\n",
+		"-p", testVars.AWSProfile1,
+		"-r", testVars.AWSRegion1,
+		"aws_vpc", "nonExistingID", actualVpcID1)
+
+	AssertVpcDeleted(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	actualLogs := logBuffer.String()
+
+	expectedLogs := []string{
+		"TOTAL NUMBER OF DELETED RESOURCES: 1",
+		"THE FOLLOWING RESOURCES DON'T EXIST",
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1),
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			"nonExistingID", testVars.AWSProfile1, testVars.AWSRegion1),
+	}
+
+	for _, expectedLogEntry := range expectedLogs {
+		assert.Regexp(t, regexp.MustCompile(expectedLogEntry), actualLogs)
+	}
+
+	fmt.Println(actualLogs)
+}
+
+func runBinary(t *testing.T, userInput string, args ...string) *bytes.Buffer {
 	defer gexec.CleanupBuildArtifacts()
 
 	compiledPath, err := gexec.Build(packagePath)
@@ -129,30 +240,21 @@ func runBinary(t *testing.T, userInput string, args ...string) (*bytes.Buffer, e
 	// if we don't provide user input via file to Stdin,
 	// the exec package delivers input via pipe (which is not what we want)
 	stdinFile, err := ioutil.TempFile("", "stdinFile")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	defer os.Remove(stdinFile.Name())
 
 	stdIn, err := os.Create(stdinFile.Name())
-	if err != nil {
-		t.Fatalf("failed to create %s: %s", stdinFile.Name(), err)
-	}
+	require.NoError(t, err)
 
 	_, err = stdIn.Write([]byte(userInput))
-	if err != nil {
-		t.Fatalf("failed to write to %s: %s", stdinFile.Name(), err)
-	}
+	require.NoError(t, err)
 
 	err = stdIn.Close()
-	if err != nil {
-		t.Fatalf("failed to close %s: %s", stdinFile.Name(), err)
-	}
+	require.NoError(t, err)
 
 	stdIn, err = os.OpenFile(stdinFile.Name(), os.O_RDONLY, os.ModeAppend)
-	if err != nil {
-		t.Fatalf("failed to open %s: %s", stdinFile.Name(), err)
-	}
+	require.NoError(t, err)
 
 	logBuffer := &bytes.Buffer{}
 
@@ -164,5 +266,5 @@ func runBinary(t *testing.T, userInput string, args ...string) (*bytes.Buffer, e
 	err = p.Run()
 	assert.NoError(t, err)
 
-	return logBuffer, err
+	return logBuffer
 }
