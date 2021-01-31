@@ -15,7 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAcc_DryRun(t *testing.T) {
+// Note: we can currently only test pipe input in dry-run mode,
+// as I couldn't find a way to get awsls input via stdIn and user input to confirm deletion from tty
+// when running the awsrm binary under test using the exec package.
+func TestAcc_InputPipedFromAwsls(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	if testing.Short() {
@@ -43,6 +46,12 @@ func TestAcc_DryRun(t *testing.T) {
 	vpc2 := terraform.Output(t, terraformOptions, "vpc2")
 	AssertVpcExists(t, vpc2, testVars.AWSProfile1, testVars.AWSRegion2)
 
+	vpc3 := terraform.Output(t, terraformOptions, "vpc3")
+	AssertVpcExists(t, vpc3, testVars.AWSProfile2, testVars.AWSRegion1)
+
+	vpc4 := terraform.Output(t, terraformOptions, "vpc4")
+	AssertVpcExists(t, vpc4, testVars.AWSProfile2, testVars.AWSRegion2)
+
 	tests := []struct {
 		name            string
 		awslsArgs       []string
@@ -54,17 +63,43 @@ func TestAcc_DryRun(t *testing.T) {
 		expectedErrCode int
 	}{
 		{
-			name: "single resource via pipe",
+			name: "single resource",
 			awslsArgs: []string{
-				"-p", fmt.Sprintf("%s", testVars.AWSProfile1),
-				"-r", fmt.Sprintf("%s", testVars.AWSRegion1),
+				"-p", testVars.AWSProfile1,
+				"-r", testVars.AWSRegion1,
 				"-a", "tags", "aws_vpc"},
 			grepArgs:  []string{"foo"},
 			awsrmArgs: []string{"--dry-run"},
 			expectedLogs: []string{
 				"SHOWING RESOURCES THAT WOULD BE DELETED (DRY RUN)",
+				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
 					vpc1, testVars.AWSProfile1, testVars.AWSRegion1),
+			},
+			unexpectedLogs: []string{
+				"STARTING TO DELETE RESOURCES",
+				"TOTAL NUMBER OF DELETED RESOURCES:",
+			},
+		},
+		{
+			name: "multiple profiles and regions via awsls flag",
+			awslsArgs: []string{
+				"-p", fmt.Sprintf("%s,%s", testVars.AWSProfile1, testVars.AWSProfile2),
+				"-r", fmt.Sprintf("%s,%s", testVars.AWSRegion1, testVars.AWSRegion2),
+				"-a", "tags", "aws_vpc"},
+			grepArgs:  []string{"awsrm=test-acc"},
+			awsrmArgs: []string{"--dry-run"},
+			expectedLogs: []string{
+				"SHOWING RESOURCES THAT WOULD BE DELETED (DRY RUN)",
+				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 4",
+				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+					vpc1, testVars.AWSProfile1, testVars.AWSRegion1),
+				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+					vpc2, testVars.AWSProfile1, testVars.AWSRegion2),
+				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+					vpc2, testVars.AWSProfile2, testVars.AWSRegion1),
+				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+					vpc2, testVars.AWSProfile2, testVars.AWSRegion2),
 			},
 			unexpectedLogs: []string{
 				"STARTING TO DELETE RESOURCES",
@@ -90,7 +125,8 @@ func TestAcc_DryRun(t *testing.T) {
 
 			AssertVpcExists(t, vpc1, testVars.AWSProfile1, testVars.AWSRegion1)
 			AssertVpcExists(t, vpc2, testVars.AWSProfile1, testVars.AWSRegion2)
-
+			AssertVpcExists(t, vpc3, testVars.AWSProfile2, testVars.AWSRegion1)
+			AssertVpcExists(t, vpc4, testVars.AWSProfile2, testVars.AWSRegion2)
 			actualLogs := logBuffer.String()
 
 			for _, unexpectedLogEntry := range tc.unexpectedLogs {

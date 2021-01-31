@@ -11,5 +11,5 @@ output "vpc3" {
 }
 
 output "vpc4" {
-  value = aws_vpc.test3.id
+  value = aws_vpc.test4.id
 }
