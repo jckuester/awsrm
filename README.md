@@ -4,7 +4,7 @@ A remove command for AWS resources
 
 [![Release](https://img.shields.io/github/release/jckuester/awsrm.svg?style=for-the-badge)](https://github.com/jckuester/awsrm/releases/latest)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
-[![Travis](https://img.shields.io/travis/jckuester/awsrm/master.svg?style=for-the-badge)](https://travis-ci.com/jckuester/awsrm)
+[![Travis](https://img.shields.io/travis/com/jckuester/awsrm/master.svg?style=for-the-badge)](https://travis-ci.com/jckuester/awsrm)
 
 This command line tool follows the [Unix Philosophy](https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well)
 and `does only one thing, but (hopefully) does it well`:

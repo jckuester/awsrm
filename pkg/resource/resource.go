@@ -70,7 +70,7 @@ func Delete(clientKeys []util.AWSClientKey, resources []awsls.Resource, confirmD
 		len(resourcesToDelete)))
 
 	if !dryRun && len(resourcesToDelete) > 0 {
-		if !internal.UserConfirmedDeletion(confirmDevice, false) {
+		if !internal.UserConfirmedDeletion(confirmDevice) {
 			return nil
 		}
 
