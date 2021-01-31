@@ -77,7 +77,7 @@ const help = `
 awsrm - A remove command for AWS resources.
 
 USAGE:
-  $ awsrm [flags] <type> <id> [<id>...]
+  $ awsrm [flags] <resource_type> <id> [<id>...]
 
 The resource type and ID(s) are required arguments to
 delete some resource(s). If no profile and/or region for an AWS account is given,
@@ -89,10 +89,8 @@ the output of awsls, for example, through grep to awsrm:
 
   $ awsls [profile/region flags] vpc -a tags | grep Name=foo | awsrm
 
-For supported resource types and a full help text,
-see the README in the GitHub repository
-https://github.com/jckuester/awsrm and
-https://github.com/jckuester/awsls.
+For supported resource types and a full help text, see the README in the GitHub repository
+https://github.com/jckuester/awsrm and https://github.com/jckuester/awsls.
 
 FLAGS:
 `

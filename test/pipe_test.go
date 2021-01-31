@@ -98,9 +98,9 @@ func TestAcc_InputPipedFromAwsls(t *testing.T) {
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
 					vpc2, testVars.AWSProfile1, testVars.AWSRegion2),
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
-					vpc2, testVars.AWSProfile2, testVars.AWSRegion1),
+					vpc3, testVars.AWSProfile2, testVars.AWSRegion1),
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
-					vpc2, testVars.AWSProfile2, testVars.AWSRegion2),
+					vpc4, testVars.AWSProfile2, testVars.AWSRegion2),
 			},
 			unexpectedLogs: []string{
 				"STARTING TO DELETE RESOURCES",
@@ -128,6 +128,7 @@ func TestAcc_InputPipedFromAwsls(t *testing.T) {
 			AssertVpcExists(t, vpc2, testVars.AWSProfile1, testVars.AWSRegion2)
 			AssertVpcExists(t, vpc3, testVars.AWSProfile2, testVars.AWSRegion1)
 			AssertVpcExists(t, vpc4, testVars.AWSProfile2, testVars.AWSRegion2)
+
 			actualLogs := logBuffer.String()
 
 			for _, expectedLogEntry := range tc.expectedLogs {
