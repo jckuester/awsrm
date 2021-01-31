@@ -79,15 +79,15 @@ awsrm - A remove command for AWS resources.
 USAGE:
   $ awsrm [flags] <type> <id> [<id>...]
 
-The resource type and some ID(s) are required arguments to
-delete resource(s). If no profile and/or region for an AWS account is given,
-credentials will be searched for by the usual precedence of the
+The resource type and ID(s) are required arguments to
+delete some resource(s). If no profile and/or region for an AWS account is given,
+credentials are used by the usual precedence of the
 AWS CLI: environment variables, AWS credentials file, etc.
 
 Resources in multiple accounts and regions can be filtered and deleted by piping
 the output of awsls, for example, through grep to awsrm:
 
-  $ awsls [profile/region flags] vpc -a tags | egrep 'Name=foo' | awsrm
+  $ awsls [profile/region flags] vpc -a tags | grep Name=foo | awsrm
 
 For supported resource types and a full help text,
 see the README in the GitHub repository

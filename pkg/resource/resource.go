@@ -23,15 +23,42 @@ func Delete(clientKeys []util.AWSClientKey, resources []awsls.Resource, confirmD
 
 	resourcesWithUpdatedState := resource.GetStates(resources, providers)
 
-	internal.LogTitle("showing resources that would be deleted (dry run)")
+	var resourcesAlreadyDeleted []awsls.Resource
+	var resourcesToDelete []awsls.Resource
+
+	for _, r := range resourcesWithUpdatedState {
+		if r.State().IsNull() {
+			resourcesAlreadyDeleted = append(resourcesAlreadyDeleted, r)
+		} else {
+			resourcesToDelete = append(resourcesToDelete, r)
+		}
+	}
+
+	if len(resourcesToDelete) != 0 {
+		internal.LogTitle("showing resources that would be deleted (dry run)")
+	}
 
 	// always show the resources that would be affected before deleting anything
-	for _, r := range resourcesWithUpdatedState {
+	for _, r := range resourcesToDelete {
+		if r.State() != nil {
+			log.WithFields(log.Fields{
+				"id":      r.ID,
+				"profile": r.Profile,
+				"region":  r.Region,
+			}).Warn(internal.Pad(r.Type))
+		}
+	}
+
+	if len(resourcesAlreadyDeleted) != 0 {
+		internal.LogTitle("the following resources don't exist")
+	}
+
+	for _, r := range resourcesAlreadyDeleted {
 		log.WithFields(log.Fields{
 			"id":      r.ID,
 			"profile": r.Profile,
 			"region":  r.Region,
-		}).Warn(internal.Pad(r.Type))
+		}).Info(internal.Pad(r.Type))
 	}
 
 	if len(resourcesWithUpdatedState) == 0 {
@@ -40,17 +67,17 @@ func Delete(clientKeys []util.AWSClientKey, resources []awsls.Resource, confirmD
 	}
 
 	internal.LogTitle(fmt.Sprintf("total number of resources that would be deleted: %d",
-		len(resourcesWithUpdatedState)))
+		len(resourcesToDelete)))
 
-	if !dryRun {
+	if !dryRun && len(resourcesToDelete) > 0 {
 		if !internal.UserConfirmedDeletion(confirmDevice, false) {
 			return nil
 		}
 
-		internal.LogTitle("Starting to deleteResources resources")
+		internal.LogTitle("Starting to delete resources")
 
 		numDeletedResources := terradozerRes.DestroyResources(
-			convertToDestroyable(resourcesWithUpdatedState), 5)
+			convertToDestroyable(resourcesToDelete), 5)
 
 		internal.LogTitle(fmt.Sprintf("total number of deleted resources: %d", numDeletedResources))
 	}
@@ -58,6 +85,9 @@ func Delete(clientKeys []util.AWSClientKey, resources []awsls.Resource, confirmD
 	return nil
 }
 
+// Read resources from stdIn via pipe
+// A line must be of the following form:
+// 	<resource_type> <resource_id> <profile> <region>\n
 func Read(r io.Reader) ([]awsls.Resource, error) {
 	var result []awsls.Resource
 
