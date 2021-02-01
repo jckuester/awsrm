@@ -9,13 +9,19 @@ import (
 	"github.com/apex/log"
 	awsls "github.com/jckuester/awsls/aws"
 	"github.com/jckuester/awsls/resource"
+	awslsRes "github.com/jckuester/awsls/resource"
 	"github.com/jckuester/awsls/util"
 	"github.com/jckuester/awsrm/internal"
 	terradozerRes "github.com/jckuester/terradozer/pkg/resource"
 )
 
-func Delete(clientKeys []util.AWSClientKey, resources []awsls.Resource, confirmDevice io.Reader,
-	dryRun bool) error {
+func Delete(clientKeys []util.AWSClientKey, resources []awsls.Resource, confirmDevice io.Reader, dryRun bool) error {
+	for _, r := range resources {
+		if !awslsRes.IsSupportedType(r.Type) {
+			return fmt.Errorf("no resource type found: %s\n", r.Type)
+		}
+	}
+
 	providers, err := util.NewProviderPool(clientKeys)
 	if err != nil {
 		return err
@@ -101,10 +107,6 @@ func Read(r io.Reader) ([]awsls.Resource, error) {
 
 		rType := rAttrs[0]
 		profile := rAttrs[2]
-
-		if !resource.IsType(rType) {
-			return nil, fmt.Errorf("is not a Terraform resource type: %s", rType)
-		}
 
 		if profile == `N\A` {
 			profile = ""

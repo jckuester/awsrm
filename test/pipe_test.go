@@ -147,6 +147,44 @@ func TestAcc_InputPipedFromAwsls(t *testing.T) {
 	}
 }
 
+func TestAcc_Pipe_UnsupportedResourceType(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	if testing.Short() {
+		t.Skip("Skipping acceptance test.")
+	}
+
+	logBuffer, err := runBinaryWithPipedInput(t,
+		[]string{"--dry-run"},
+		"aws_unsupported someId myaccount us-west-2")
+	assert.Error(t, err)
+
+	actualLogs := logBuffer.String()
+
+	assert.Contains(t, actualLogs, "Error: no resource type found: aws_unsupported")
+
+	fmt.Println(actualLogs)
+}
+
+func runBinaryWithPipedInput(t *testing.T, awsrmArgs []string, inputFromPipe string) (*bytes.Buffer, error) {
+	defer gexec.CleanupBuildArtifacts()
+
+	compiledPathAwsrm, err := gexec.Build(packagePath)
+	require.NoError(t, err)
+
+	logBuffer := &bytes.Buffer{}
+
+	awsrm := exec.Command(compiledPathAwsrm, awsrmArgs...)
+	require.NoError(t, err)
+	awsrm.Stdin = bytes.NewBufferString(inputFromPipe)
+	awsrm.Stdout = logBuffer
+	awsrm.Stderr = logBuffer
+
+	err = awsrm.Run()
+
+	return logBuffer, err
+}
+
 func runBinaryWithPipedOutputFromAwsls(t *testing.T, awslsArgs, grepArgs, awsrmArgs []string) *bytes.Buffer {
 	defer gexec.CleanupBuildArtifacts()
 

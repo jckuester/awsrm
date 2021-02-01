@@ -107,9 +107,10 @@ func TestAcc_Args_UserConfirmation(t *testing.T) {
 			actualVpcID2 := terraform.Output(t, terraformOptions, "vpc_id2")
 			AssertVpcExists(t, actualVpcID2, testVars.AWSProfile1, testVars.AWSRegion1)
 
-			logBuffer := runBinary(t, tc.userInput,
+			logBuffer, err := runBinary(t, tc.userInput,
 				append(tc.extraArgs, "aws_vpc",
 					actualVpcID1, "-p", testVars.AWSProfile1, "-r", testVars.AWSRegion1)...)
+			assert.NoError(t, err)
 
 			if tc.expectResourceIsDeleted {
 				AssertVpcDeleted(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
@@ -159,10 +160,11 @@ func TestAcc_Args_MultipleResourceIDs(t *testing.T) {
 	actualVpcID3 := terraform.Output(t, terraformOptions, "vpc_id3")
 	AssertVpcExists(t, actualVpcID3, testVars.AWSProfile1, testVars.AWSRegion1)
 
-	logBuffer := runBinary(t, "yes\n",
+	logBuffer, err := runBinary(t, "yes\n",
 		"-p", testVars.AWSProfile1,
 		"-r", testVars.AWSRegion1,
 		"aws_vpc", actualVpcID1, actualVpcID2, actualVpcID3)
+	assert.NoError(t, err)
 
 	AssertVpcDeleted(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
 	AssertVpcDeleted(t, actualVpcID2, testVars.AWSProfile1, testVars.AWSRegion1)
@@ -207,10 +209,11 @@ func TestAcc_Args_NonExistingResourceID(t *testing.T) {
 	actualVpcID1 := terraform.Output(t, terraformOptions, "vpc_id1")
 	AssertVpcExists(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
 
-	logBuffer := runBinary(t, "yes\n",
+	logBuffer, err := runBinary(t, "yes\n",
 		"-p", testVars.AWSProfile1,
 		"-r", testVars.AWSRegion1,
 		"aws_vpc", "nonExistingID", actualVpcID1)
+	assert.NoError(t, err)
 
 	AssertVpcDeleted(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
 
@@ -232,7 +235,29 @@ func TestAcc_Args_NonExistingResourceID(t *testing.T) {
 	fmt.Println(actualLogs)
 }
 
-func runBinary(t *testing.T, userInput string, args ...string) *bytes.Buffer {
+func TestAcc_Args_UnsupportedResourceType(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	if testing.Short() {
+		t.Skip("Skipping acceptance test.")
+	}
+
+	testVars := Init(t)
+
+	logBuffer, err := runBinary(t, "yes\n",
+		"-p", testVars.AWSProfile1,
+		"-r", testVars.AWSRegion1,
+		"aws_unsupported", "someId")
+	assert.Error(t, err)
+
+	actualLogs := logBuffer.String()
+
+	assert.Contains(t, actualLogs, "Error: no resource type found: aws_unsupported")
+
+	fmt.Println(actualLogs)
+}
+
+func runBinary(t *testing.T, userInput string, args ...string) (*bytes.Buffer, error) {
 	defer gexec.CleanupBuildArtifacts()
 
 	compiledPath, err := gexec.Build(packagePath)
@@ -265,7 +290,6 @@ func runBinary(t *testing.T, userInput string, args ...string) *bytes.Buffer {
 	p.Stderr = logBuffer
 
 	err = p.Run()
-	assert.NoError(t, err)
 
-	return logBuffer
+	return logBuffer, err
 }
