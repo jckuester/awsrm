@@ -72,7 +72,7 @@ func TestAcc_InputPipedFromAwsls(t *testing.T) {
 			grepArgs:  []string{"foo"},
 			awsrmArgs: []string{"--dry-run"},
 			expectedLogs: []string{
-				"SHOWING RESOURCES THAT WOULD BE DELETED (DRY RUN)",
+				"SHOWING RESOURCES THAT WOULD BE DELETED \\(DRY RUN\\)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
 					vpc1, testVars.AWSProfile1, testVars.AWSRegion1),
@@ -91,7 +91,7 @@ func TestAcc_InputPipedFromAwsls(t *testing.T) {
 			grepArgs:  []string{"awsrm=test-acc"},
 			awsrmArgs: []string{"--dry-run"},
 			expectedLogs: []string{
-				"SHOWING RESOURCES THAT WOULD BE DELETED (DRY RUN)",
+				"SHOWING RESOURCES THAT WOULD BE DELETED \\(DRY RUN\\)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 4",
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
 					vpc1, testVars.AWSProfile1, testVars.AWSRegion1),
