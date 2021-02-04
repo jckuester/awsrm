@@ -235,6 +235,49 @@ func TestAcc_Args_NonExistingResourceID(t *testing.T) {
 	fmt.Println(actualLogs)
 }
 
+func TestAcc_Args_ResourceTypeWithoutAWSPrefix(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	if testing.Short() {
+		t.Skip("Skipping acceptance test.")
+	}
+
+	testVars := Init(t)
+
+	terraformDir := "./test-fixtures/vpc"
+
+	terraformOptions := GetTerraformOptions(terraformDir, testVars)
+
+	defer terraform.Destroy(t, terraformOptions)
+
+	terraform.InitAndApply(t, terraformOptions)
+
+	actualVpcID1 := terraform.Output(t, terraformOptions, "vpc_id1")
+	AssertVpcExists(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	logBuffer, err := runBinary(t, "yes\n",
+		"-p", testVars.AWSProfile1,
+		"-r", testVars.AWSRegion1,
+		"vpc", actualVpcID1)
+	assert.NoError(t, err)
+
+	AssertVpcDeleted(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	actualLogs := logBuffer.String()
+
+	expectedLogs := []string{
+		"TOTAL NUMBER OF DELETED RESOURCES: 1",
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1),
+	}
+
+	for _, expectedLogEntry := range expectedLogs {
+		assert.Regexp(t, regexp.MustCompile(expectedLogEntry), actualLogs)
+	}
+
+	fmt.Println(actualLogs)
+}
+
 func TestAcc_Args_UnsupportedResourceType(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 

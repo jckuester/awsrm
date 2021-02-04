@@ -19,7 +19,7 @@ import (
 // Note: we can currently only test pipe input in dry-run mode,
 // as I couldn't find a way to get awsls input via stdIn and user input to confirm deletion from tty
 // when running the awsrm binary under test using the exec package.
-func TestAcc_InputPipedFromAwsls(t *testing.T) {
+func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	if testing.Short() {
@@ -116,7 +116,7 @@ func TestAcc_InputPipedFromAwsls(t *testing.T) {
 			err = SetMultiEnvs(tc.envs)
 			require.NoError(t, err)
 
-			logBuffer := runBinaryWithPipedOutputFromAwsls(t, tc.awslsArgs, tc.grepArgs, tc.awsrmArgs)
+			logBuffer := runBinaryWithPipeInputFromAwsls(t, tc.awslsArgs, tc.grepArgs, tc.awsrmArgs)
 
 			if tc.expectedErrCode > 0 {
 				assert.EqualError(t, err, "exit status 1")
@@ -154,7 +154,7 @@ func TestAcc_Pipe_UnsupportedResourceType(t *testing.T) {
 		t.Skip("Skipping acceptance test.")
 	}
 
-	logBuffer, err := runBinaryWithPipedInput(t,
+	logBuffer, err := runBinaryWithInputFromPipe(t,
 		[]string{"--dry-run"},
 		"aws_unsupported someId myaccount us-west-2")
 	assert.Error(t, err)
@@ -166,7 +166,47 @@ func TestAcc_Pipe_UnsupportedResourceType(t *testing.T) {
 	fmt.Println(actualLogs)
 }
 
-func runBinaryWithPipedInput(t *testing.T, awsrmArgs []string, inputFromPipe string) (*bytes.Buffer, error) {
+func TestAcc_Pipe_ResourceTypeWithoutAWSPrefix(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	if testing.Short() {
+		t.Skip("Skipping acceptance test.")
+	}
+
+	testVars := Init(t)
+
+	terraformDir := "./test-fixtures/vpc"
+
+	terraformOptions := GetTerraformOptions(terraformDir, testVars)
+
+	defer terraform.Destroy(t, terraformOptions)
+
+	terraform.InitAndApply(t, terraformOptions)
+
+	actualVpcID1 := terraform.Output(t, terraformOptions, "vpc_id1")
+	AssertVpcExists(t, actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1)
+
+	logBuffer, err := runBinaryWithInputFromPipe(t,
+		[]string{"--dry-run"},
+		fmt.Sprintf("vpc %s %s %s", actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1))
+	assert.NoError(t, err)
+
+	actualLogs := logBuffer.String()
+
+	expectedLogs := []string{
+		"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			actualVpcID1, testVars.AWSProfile1, testVars.AWSRegion1),
+	}
+
+	for _, expectedLogEntry := range expectedLogs {
+		assert.Regexp(t, regexp.MustCompile(expectedLogEntry), actualLogs)
+	}
+
+	fmt.Println(actualLogs)
+}
+
+func runBinaryWithInputFromPipe(t *testing.T, awsrmArgs []string, inputFromPipe string) (*bytes.Buffer, error) {
 	defer gexec.CleanupBuildArtifacts()
 
 	compiledPathAwsrm, err := gexec.Build(packagePath)
@@ -185,7 +225,7 @@ func runBinaryWithPipedInput(t *testing.T, awsrmArgs []string, inputFromPipe str
 	return logBuffer, err
 }
 
-func runBinaryWithPipedOutputFromAwsls(t *testing.T, awslsArgs, grepArgs, awsrmArgs []string) *bytes.Buffer {
+func runBinaryWithPipeInputFromAwsls(t *testing.T, awslsArgs, grepArgs, awsrmArgs []string) *bytes.Buffer {
 	defer gexec.CleanupBuildArtifacts()
 
 	compiledPath, err := gexec.Build("github.com/jckuester/awsls")
