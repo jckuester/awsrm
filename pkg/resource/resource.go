@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/apex/log"
 	awsls "github.com/jckuester/awsls/aws"
@@ -16,13 +17,20 @@ import (
 )
 
 func Delete(clientKeys []util.AWSClientKey, resources []awsls.Resource, confirmDevice io.Reader, dryRun bool) error {
-	for _, r := range resources {
-		if !awslsRes.IsSupportedType(r.Type) {
+	for i, r := range resources {
+		rWithPrefix := r.Type
+		if !strings.HasPrefix(r.Type, "aws_") {
+			rWithPrefix = "aws_" + r.Type
+		}
+
+		if !awslsRes.IsSupportedType(rWithPrefix) {
 			return fmt.Errorf("no resource type found: %s\n", r.Type)
 		}
+
+		resources[i].Type = rWithPrefix
 	}
 
-	providers, err := util.NewProviderPool(clientKeys)
+	providers, err := util.NewProviderPool(clientKeys, "v3.16.0", "~/.awsrm", 1*time.Minute)
 	if err != nil {
 		return err
 	}
@@ -100,6 +108,12 @@ func Read(r io.Reader) ([]awsls.Resource, error) {
 	scanner := bufio.NewScanner(bufio.NewReader(r))
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		// ignore empty lines and header lines of awsls beginning with "TYPE ID..."
+		if line == "\n" || line == "" || strings.HasPrefix(line, "TYPE") {
+			continue
+		}
+
 		rAttrs := strings.Fields(line)
 		if len(rAttrs) < 4 {
 			return nil, fmt.Errorf("input must be of form: <resource_type> <resource_id> <profile> <region>")

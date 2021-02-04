@@ -25,5 +25,5 @@ func LogTitle(title string) {
 }
 
 func Pad(s string) string {
-	return fmt.Sprintf("%-50v", s)
+	return fmt.Sprintf("%-40v", s)
 }
