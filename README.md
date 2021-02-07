@@ -9,7 +9,7 @@ A remove command for AWS resources
 This command line tool follows the [Unix Philosophy](https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well)
 of `doing only one thing and doing it well`:
 
-It simplifies deleting over [250 supported AWS resource types](https://github.com/jckuester/awsls#supported-resources)
+It simplifies deleting over [250 supported AWS resource types](#supported-resources)
 across multiple accounts and regions.
 
 Like other Unix-like tools, `awsrm` reveals its real power when combining it (via pipes) with other tools,
@@ -24,27 +24,27 @@ To delete, for example, all EC2 instances with tag `Name=foo`, run
 
       awsls instance -a tags | grep Name=foo | awsrm
 
-Multiple attributes can also be displayed via the `-a (--attributes) <comma-separated list>` flag and then filtered on. 
+To filter on multiple attributes, display them via the `-a (--attributes) <comma-separated list>` flag accordingly.
 Every attribute in the Terraform documentation
-([here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#attributes-reference) are the attributes for `aws_instance`) is a valid one:
+([here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#attributes-reference) are the attributes for `aws_instance`) can be used:
 
 ![](https://raw.githubusercontent.com/jckuester/awsrm/master/.github/img/awsrm-grep.gif)
 
 1. List resources via [`awsls`](https://github.com/jckuester/awsls) with the attributes you want to filter on
    (here: `-a tags`)
 2. Use standard tools like `grep` to filter resources
-3. Pipe result into `awsrm` (nothing is deleted until you confirm)
+3. Pipe result to `awsrm` (nothing is deleted until you confirm)
 
-**Note**: `awsls` output always contains profile and region information, so that `awsrm` knows for each resource exactly 
+**Note**: `awsls` output passes on profile and region information, so that `awsrm` knows for each resource 
 in what account and region to delete it.
 
-Depending on the type of resource, deletion can take some time. For your convenience, the gif runs faster than EC2 instances
-are actually terminated, but the shell prompt shows the real execution times in seconds.
+Depending on the type of resource, deletion can take some time. For your convenience, this GIF runs faster than EC2 instances
+are actually terminated; the shell prompt shows the real execution times in seconds.
 
 ### Delete across multiple accounts and regions
 
 List all instances in the AWS accounts associated with profile `myaccount1` and `myaccount2` in both 
-regions `us-west-2` and `us-east-1` and pipe result into `awsrm`:
+regions `us-west-2` and `us-east-1` and pipe the result to `awsrm`:
 
     awsls -p myaccount1,myaccount2 -r us-west-2,us-east-1 instance | awsrm
 
@@ -52,12 +52,14 @@ regions `us-west-2` and `us-east-1` and pipe result into `awsrm`:
 
 ### Delete by IDs
 
-In this example, we select specific resource IDs to delete some VPCs and IAM roles:
+Delete specific resources by ID, for example, some VPCs and IAM roles:
 
-1. List resources via [`awsls`](https://github.com/jckuester/awsls) to find out what resources to delete.
-2. Use `awsrm` to delete the resources by type and ID(s) 
+    awsrm iam_role db-cluster elb nginx
 
 ![](https://raw.githubusercontent.com/jckuester/awsrm/master/.github/img/awsrm-args.gif)
+
+1. List resources via [`awsls`](https://github.com/jckuester/awsls) to find out what resources to delete.
+2. Use `awsrm` to delete the resources by resource type and ID(s)
 
 ## Usage
 
@@ -68,6 +70,7 @@ Input via arguments:
 Input via pipe:
 
     awsls [flags] <resource_type> | awsrm
+    echo "<resource_type> <id> <profile> <region>" | awsrm
 
 To see options available run `awsrm --help`.
 
@@ -87,14 +90,14 @@ curl -sSfL https://raw.githubusercontent.com/jckuester/awrm/master/install.sh | 
 Homebrew users can install by:
 
 ```bash
-brew install jckuester/tap/awls
+brew install jckuester/tap/awrm
 ```
 
 For more information on Homebrew taps please see the [tap documentation](https://docs.brew.sh/Taps).
 
 ## Supported resources
 
-This tools can delete the same resource types that are [supported by awsls](https://github.com/jckuester/awsls#supported-resources).
+This tool can delete the same resource types that are [supported by awsls](https://github.com/jckuester/awsls#supported-resources).
 
 ## Disclaimer
 
