@@ -1,20 +1,29 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
-
-	"github.com/jckuester/awsrm/pkg/resource"
+	"time"
 
 	"github.com/apex/log"
-
 	"github.com/fatih/color"
 	awsls "github.com/jckuester/awsls/aws"
-	"github.com/jckuester/awsls/util"
+	awslsRes "github.com/jckuester/awsls/resource"
+	"github.com/jckuester/awsrm/pkg/resource"
+	"github.com/jckuester/awstools-lib/aws"
+	"github.com/jckuester/awstools-lib/terraform"
+	"golang.org/x/net/context"
 )
 
-func handleInputFromArgs(args []string, profile, region string, dryRun bool) int {
+func handleInputFromArgs(ctx context.Context, args []string, profile, region string, dryRun bool) int {
 	log.Debug("input via args")
+
+	rType := resource.PrefixResourceType(args[0])
+	if !awslsRes.IsSupportedType(rType) {
+		fmt.Fprint(os.Stderr, color.RedString("\nError: no resource type found: %s\n", rType))
+		return 1
+	}
 
 	var profiles []string
 	var regions []string
@@ -32,14 +41,13 @@ func handleInputFromArgs(args []string, profile, region string, dryRun bool) int
 		regions = []string{region}
 	}
 
-	clients, err := util.NewAWSClientPool(profiles, regions)
+	clients, err := aws.NewClientPool(profiles, regions)
 	if err != nil {
 		fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
 		return 1
 	}
 
 	var resources []awsls.Resource
-	rType := args[0]
 	for _, client := range clients {
 		for _, id := range args[1:] {
 			resources = append(resources, awsls.Resource{
@@ -51,15 +59,43 @@ func handleInputFromArgs(args []string, profile, region string, dryRun bool) int
 		}
 	}
 
-	var clientKeys []util.AWSClientKey
+	var clientKeys []aws.ClientKey
 	for k := range clients {
 		clientKeys = append(clientKeys, k)
 	}
 
-	err = resource.Delete(clientKeys, resources, os.Stdin, dryRun)
+	providers, err := terraform.NewProviderPool(ctx, clientKeys, "v3.16.0", "~/.awsrm", 1*time.Minute)
 	if err != nil {
-		fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
+		if !errors.Is(err, context.Canceled) {
+			fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
+		}
 		return 1
+	}
+	defer func() {
+		for _, p := range providers {
+			_ = p.Close()
+		}
+	}()
+
+	resourcesCh := make(chan resource.UpdatedResources, 1)
+	go func() { resourcesCh <- resource.Update(resources, providers) }()
+	select {
+	case <-ctx.Done():
+		return 1
+	case result := <-resourcesCh:
+		resources = result.Resources
+
+		for _, err := range result.Errors {
+			fmt.Fprint(os.Stderr, color.RedString("Error %s: %s\n", rType, err))
+		}
+	}
+
+	doneDelete := make(chan bool, 1)
+	go func() { resource.Delete(resources, os.Stdin, dryRun, doneDelete) }()
+	select {
+	case <-ctx.Done():
+		return 0
+	case <-doneDelete:
 	}
 
 	return 0

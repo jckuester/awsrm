@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	stdlog "log"
 	"os"
+	"os/signal"
 	"strings"
 
 	"github.com/apex/log"
@@ -56,8 +58,27 @@ func mainExitCode() int {
 		return 0
 	}
 
+	ctx := context.Background()
+
+	// trap Ctrl+C and call cancel on the context
+	ctx, cancel := context.WithCancel(ctx)
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, ignoreSignals...)
+	signal.Notify(signalCh, forwardSignals...)
+	defer func() {
+		signal.Stop(signalCh)
+		cancel()
+	}()
+	go func() {
+		select {
+		case <-signalCh:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
 	if isInputFromPipe() {
-		return handleInputFromPipe(dryRun)
+		return handleInputFromPipe(ctx, dryRun)
 	}
 
 	if len(args) < 2 {
@@ -65,7 +86,7 @@ func mainExitCode() int {
 		return 1
 	}
 
-	return handleInputFromArgs(args, profile, region, dryRun)
+	return handleInputFromArgs(ctx, args, profile, region, dryRun)
 }
 
 func printHelp(fs *flag.FlagSet) {

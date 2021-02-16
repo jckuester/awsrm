@@ -55,6 +55,7 @@ regions `us-west-2` and `us-east-1` and pipe the result to `awsrm`:
 Delete specific resources by ID, for example, some VPCs and IAM roles:
 
     awsrm iam_role db-cluster elb nginx
+    awsrm vpc vpc-1234 vpc-3456 vpc-7689
 
 ![](https://raw.githubusercontent.com/jckuester/awsrm/master/.github/img/awsrm-args.gif)
 
