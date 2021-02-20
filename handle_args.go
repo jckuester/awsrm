@@ -8,8 +8,6 @@ import (
 
 	"github.com/apex/log"
 	"github.com/fatih/color"
-	awsls "github.com/jckuester/awsls/aws"
-	awslsRes "github.com/jckuester/awsls/resource"
 	"github.com/jckuester/awsrm/pkg/resource"
 	"github.com/jckuester/awstools-lib/aws"
 	"github.com/jckuester/awstools-lib/terraform"
@@ -20,7 +18,7 @@ func handleInputFromArgs(ctx context.Context, args []string, profile, region str
 	log.Debug("input via args")
 
 	rType := resource.PrefixResourceType(args[0])
-	if !awslsRes.IsSupportedType(rType) {
+	if !terraform.IsType(rType) {
 		fmt.Fprint(os.Stderr, color.RedString("\nError: no resource type found: %s\n", rType))
 		return 1
 	}
@@ -47,10 +45,10 @@ func handleInputFromArgs(ctx context.Context, args []string, profile, region str
 		return 1
 	}
 
-	var resources []awsls.Resource
+	var resources []terraform.Resource
 	for _, client := range clients {
 		for _, id := range args[1:] {
-			resources = append(resources, awsls.Resource{
+			resources = append(resources, terraform.Resource{
 				Type:    rType,
 				ID:      id,
 				Profile: client.Profile,

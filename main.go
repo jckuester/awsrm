@@ -61,6 +61,7 @@ func mainExitCode() int {
 	ctx := context.Background()
 
 	// trap Ctrl+C and call cancel on the context
+	// to close running Terraform AWS provider plugins properly
 	ctx, cancel := context.WithCancel(ctx)
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, ignoreSignals...)
@@ -100,13 +101,12 @@ awsrm - A remove command for AWS resources.
 USAGE:
   $ awsrm [flags] <resource_type> <id> [<id>...]
 
-The resource type and ID(s) are required arguments to
-delete some resource(s). If no profile and/or region for an AWS account is given,
-credentials are used by the usual precedence of the
-AWS CLI: environment variables, AWS credentials file, etc.
+The resource type and ID(s) are required arguments to delete resource(s).
+If no profile and/or region for an AWS account is given, credentials are
+looked for by the usual precedence of the AWS CLI: environment variables, AWS credentials file, etc.
 
 Resources in multiple accounts and regions can be filtered and deleted by piping
-the output of awsls, for example, through grep to awsrm:
+the output of awsls through grep, for example, to awsrm:
 
   $ awsls [profile/region flags] vpc -a tags | grep Name=foo | awsrm
 

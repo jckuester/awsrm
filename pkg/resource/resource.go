@@ -6,31 +6,26 @@ import (
 	"io"
 	"strings"
 
-	awslsRes "github.com/jckuester/awsls/resource"
-
-	"github.com/jckuester/terradozer/pkg/provider"
-
-	"github.com/jckuester/awstools-lib/aws"
-
-	"github.com/jckuester/awstools-lib/terraform"
-
 	"github.com/apex/log"
-	awsls "github.com/jckuester/awsls/aws"
 	"github.com/jckuester/awsrm/internal"
+	"github.com/jckuester/awstools-lib/aws"
+	"github.com/jckuester/awstools-lib/terraform"
+	"github.com/jckuester/terradozer/pkg/provider"
 	terradozerRes "github.com/jckuester/terradozer/pkg/resource"
 )
 
 type UpdatedResources struct {
-	Resources []awsls.Resource
+	Resources []terraform.Resource
 	Errors    []error
 }
 
-func Update(resources []awsls.Resource, providers map[aws.ClientKey]provider.TerraformProvider) UpdatedResources {
-	withUpdatedState, errs := terraform.UpdateStates(resources, providers, 10)
+// Update fetches the Terraform state for the given resources. A state is needed to delete resources
+// via the Delete() function, which calls the Terraform AWS provider for deletion.
+func Update(resources []terraform.Resource, providers map[aws.ClientKey]provider.TerraformProvider) UpdatedResources {
+	withUpdatedState, errs := terraform.UpdateStates(resources, providers, 10, false)
 
-	// TODO introduce exists flag in resource type
-	var resourcesAlreadyDeleted []awsls.Resource
-	var resourcesToDelete []awsls.Resource
+	var resourcesAlreadyDeleted []terraform.Resource
+	var resourcesToDelete []terraform.Resource
 
 	for _, r := range withUpdatedState {
 		if r.State().IsNull() {
@@ -52,12 +47,14 @@ func Update(resources []awsls.Resource, providers map[aws.ClientKey]provider.Ter
 		}).Info(internal.Pad(r.Type))
 	}
 
-	return UpdatedResources{resources, errs}
+	return UpdatedResources{resourcesToDelete, errs}
 }
 
-func Delete(resources []awsls.Resource, confirmDevice io.Reader, dryRun bool, done chan bool) {
+// Delete deletes the given resources via the Terraform AWS Provider.
+func Delete(resources []terraform.Resource, confirmDevice io.Reader, dryRun bool, done chan bool) {
 	if len(resources) == 0 {
 		internal.LogTitle("no resources found to delete")
+		done <- true
 		return
 	}
 
@@ -94,8 +91,8 @@ func Delete(resources []awsls.Resource, confirmDevice io.Reader, dryRun bool, do
 
 // Read reads resources from stdIn (when input is coming from pipe), where a line must be of the following format:
 // 	<resource_type> <resource_id> <profile> <region>\n
-func Read(r io.Reader) ([]awsls.Resource, error) {
-	var result []awsls.Resource
+func Read(r io.Reader) ([]terraform.Resource, error) {
+	var result []terraform.Resource
 
 	scanner := bufio.NewScanner(bufio.NewReader(r))
 	for scanner.Scan() {
@@ -112,7 +109,7 @@ func Read(r io.Reader) ([]awsls.Resource, error) {
 		}
 
 		rType := PrefixResourceType(rAttrs[0])
-		if !awslsRes.IsSupportedType(rType) {
+		if !terraform.IsType(rType) {
 			return nil, fmt.Errorf("no resource type found: %s\n", rType)
 		}
 
@@ -122,7 +119,7 @@ func Read(r io.Reader) ([]awsls.Resource, error) {
 			profile = ""
 		}
 
-		result = append(result, awsls.Resource{
+		result = append(result, terraform.Resource{
 			Type:    rType,
 			ID:      rAttrs[1],
 			Profile: profile,
@@ -138,7 +135,7 @@ func Read(r io.Reader) ([]awsls.Resource, error) {
 	return result, nil
 }
 
-func convertToDestroyable(resources []awsls.Resource) []terradozerRes.DestroyableResource {
+func convertToDestroyable(resources []terraform.Resource) []terradozerRes.DestroyableResource {
 	var result []terradozerRes.DestroyableResource
 
 	for _, r := range resources {

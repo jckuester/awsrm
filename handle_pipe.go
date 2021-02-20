@@ -7,20 +7,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/jckuester/awstools-lib/terraform"
-
-	"github.com/jckuester/awstools-lib/aws"
-
-	"github.com/jckuester/awsrm/pkg/resource"
-
 	"github.com/apex/log"
 	"github.com/fatih/color"
+	"github.com/jckuester/awsrm/pkg/resource"
+	"github.com/jckuester/awstools-lib/aws"
+	"github.com/jckuester/awstools-lib/terraform"
 )
 
 func isInputFromPipe() bool {
 	fileInfo, _ := os.Stdin.Stat()
-	log.Debugf("%v\n", fileInfo.Mode())
-
 	return fileInfo.Mode()&os.ModeNamedPipe != 0
 }
 
