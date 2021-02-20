@@ -189,7 +189,38 @@ func TestAcc_Args_MultipleResourceIDs(t *testing.T) {
 	fmt.Println(actualLogs)
 }
 
-func TestAcc_Args_NonExistingResourceID(t *testing.T) {
+func TestAcc_Args_NothingToDelete(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	if testing.Short() {
+		t.Skip("Skipping acceptance test.")
+	}
+
+	testVars := Init(t)
+
+	logBuffer, err := runBinary(t, "yes\n",
+		"-p", testVars.AWSProfile1,
+		"-r", testVars.AWSRegion1,
+		"aws_vpc", "nonExistingID")
+	assert.NoError(t, err)
+
+	actualLogs := logBuffer.String()
+
+	expectedLogs := []string{
+		"NO RESOURCES FOUND TO DELETE",
+		"THE FOLLOWING RESOURCES DON'T EXIST",
+		fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+			"nonExistingID", testVars.AWSProfile1, testVars.AWSRegion1),
+	}
+
+	for _, expectedLogEntry := range expectedLogs {
+		assert.Regexp(t, regexp.MustCompile(expectedLogEntry), actualLogs)
+	}
+
+	fmt.Println(actualLogs)
+}
+
+func TestAcc_Args_SomeNonExistingResourceID(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	if testing.Short() {

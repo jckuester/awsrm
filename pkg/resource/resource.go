@@ -77,6 +77,7 @@ func Delete(resources []terraform.Resource, confirmDevice io.Reader, dryRun bool
 	if !dryRun && len(resources) > 0 {
 		if !internal.UserConfirmedDeletion(confirmDevice) {
 			done <- true
+			return
 		}
 
 		internal.LogTitle("Starting to delete resources")
