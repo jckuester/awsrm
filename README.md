@@ -6,15 +6,16 @@ A remove command for AWS resources
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
 [![Travis](https://img.shields.io/travis/com/jckuester/awsrm/master.svg?style=for-the-badge)](https://travis-ci.com/jckuester/awsrm)
 
-This command line tool follows the [Unix Philosophy](https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well)
+This command line tool follows
+the [Unix Philosophy](https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well)
 of `doing only one thing and doing it well`:
 
 It simplifies deleting over [250 supported AWS resource types](#supported-resources)
 across multiple accounts and regions.
 
-Like other Unix-like tools, `awsrm` reveals its real power when combining it (via pipes) with other tools,
-such as [`awsls`](https://github.com/jckuester/awsls) for listing AWS resources and `grep` for filtering by
-resource attributes.
+Like other Unix-like tools, `awsrm` reveals its full power when combining it (via pipes) with other tools, such
+as [`awsls`](https://github.com/jckuester/awsls) for listing AWS resources and `grep` for filtering by resource
+attributes.
 
 ## Example
 
@@ -24,9 +25,10 @@ To delete, for example, all EC2 instances with tag `Name=foo`, run
 
       awsls instance -a tags | grep Name=foo | awsrm
 
-To filter on multiple attributes, display them via the `-a (--attributes) <comma-separated list>` flag accordingly.
+To filter on multiple attributes, display them with `awsls` via the `-a (--attributes) <comma-separated list>` flag.
 Every attribute in the Terraform documentation
-([here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#attributes-reference) are the attributes for `aws_instance`) can be used:
+([here](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#attributes-reference) are
+the attributes for `aws_instance`) can be used:
 
 ![](https://raw.githubusercontent.com/jckuester/awsrm/master/.github/img/awsrm-grep.gif)
 
@@ -35,16 +37,16 @@ Every attribute in the Terraform documentation
 2. Use standard tools like `grep` to filter resources
 3. Pipe result to `awsrm` (nothing is deleted until you confirm)
 
-**Note**: `awsls` output passes on profile and region information, so that `awsrm` knows for each resource 
-in what account and region to delete it.
+**Note**: `awsls` output passes on profile and region information, so that `awsrm` knows for each resource in what
+account and region to delete it.
 
-Depending on the type of resource, deletion can take some time. For your convenience, this GIF runs faster than EC2 instances
-are actually terminated; the shell prompt shows the real execution times in seconds.
+Depending on the type of resource, deletion can take some time. For your convenience, this GIF runs faster than EC2
+instances are actually terminated; the shell prompt shows the real execution times in seconds.
 
 ### Delete across multiple accounts and regions
 
-List all instances in the AWS accounts associated with profile `myaccount1` and `myaccount2` in both 
-regions `us-west-2` and `us-east-1` and pipe the result to `awsrm`:
+List all instances in the AWS accounts associated with profile `myaccount1` and `myaccount2` in both regions `us-west-2`
+and `us-east-1` and pipe the result to `awsrm`:
 
     awsls -p myaccount1,myaccount2 -r us-west-2,us-east-1 instance | awsrm
 
@@ -79,8 +81,8 @@ To see options available run `awsrm --help`.
 
 ### Binary Releases
 
-You can download a specific version on the [releases page](https://github.com/jckuester/awsrm/releases) or
-use the following way to install to `./bin/`:
+You can download a specific version on the [releases page](https://github.com/jckuester/awsrm/releases) or use the
+following way to install to `./bin/`:
 
 ```bash
 curl -sSfL https://raw.githubusercontent.com/jckuester/awrm/master/install.sh | sh -s v0.1.0
@@ -98,7 +100,12 @@ For more information on Homebrew taps please see the [tap documentation](https:/
 
 ## Supported resources
 
-This tool can delete the same resource types that are [supported by awsls](https://github.com/jckuester/awsls#supported-resources).
+This tool can not only delete any resource type that
+is [supported by awsls](https://github.com/jckuester/awsls#supported-resources), but any resource
+type [covered by the Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs).
+
+Note: the prefix `aws_` for resource types is optional. This means, for example, `awsrm aws_instance <id>` and
+`awsrm instance <id>` are both valid commands.
 
 ## Disclaimer
 

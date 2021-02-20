@@ -10,11 +10,8 @@ import (
 	"testing"
 
 	"github.com/apex/log"
-
 	"github.com/gruntwork-io/terratest/modules/terraform"
-
 	"github.com/onsi/gomega/gexec"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
