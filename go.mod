@@ -6,6 +6,7 @@ require (
 	github.com/apex/log v1.9.0
 	github.com/fatih/color v1.10.0
 	github.com/gruntwork-io/terratest v0.32.7
+	github.com/jckuester/awsls v0.8.3 // indirect
 	github.com/jckuester/awstools-lib v0.0.0-20210220131009-cbbff634aac8
 	github.com/jckuester/terradozer v0.1.3
 	github.com/onsi/gomega v1.10.5
