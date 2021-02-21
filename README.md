@@ -90,7 +90,7 @@ You can download a specific version on the [releases page](https://github.com/jc
 following way to install to `./bin/`:
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/jckuester/awrm/master/install.sh | sh -s v0.1.0
+curl -sSfL https://raw.githubusercontent.com/jckuester/awsrm/master/install.sh | sh -s v0.1.0
 ```
 
 ### Homebrew
@@ -98,7 +98,7 @@ curl -sSfL https://raw.githubusercontent.com/jckuester/awrm/master/install.sh | 
 Homebrew users can install by:
 
 ```bash
-brew install jckuester/tap/awrm
+brew install jckuester/tap/awsrm
 ```
 
 For more information on Homebrew taps please see the [tap documentation](https://docs.brew.sh/Taps).
