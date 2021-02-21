@@ -11,6 +11,7 @@ import (
 
 	"github.com/apex/log"
 	"github.com/apex/log/handlers/cli"
+	"github.com/fatih/color"
 	"github.com/jckuester/awsrm/internal"
 	flag "github.com/spf13/pflag"
 )
@@ -73,6 +74,7 @@ func mainExitCode() int {
 	go func() {
 		select {
 		case <-signalCh:
+			fmt.Fprint(os.Stderr, color.RedString("\nAborting...\n"))
 			cancel()
 		case <-ctx.Done():
 		}
