@@ -10,10 +10,9 @@ This command line tool follows
 the [Unix Philosophy](https://en.wikipedia.org/wiki/Unix_philosophy#Do_One_Thing_and_Do_It_Well)
 of `doing only one thing and doing it well`:
 
-It simplifies deleting over [250 supported AWS resource types](#supported-resources)
-across multiple accounts and regions.
+It simplifies deleting over [250 AWS resource types](#supported-resources) across multiple accounts and regions.
 
-Like other Unix-like tools, `awsrm` reveals its full power when combining it (via pipes) with other tools, such
+Like other Unix-like tools, `awsrm` reveals its full power when combining it via pipes with other tools, such
 as [`awsls`](https://github.com/jckuester/awsls) for listing AWS resources and `grep` for filtering by resource
 attributes.
 
@@ -40,13 +39,13 @@ the attributes for `aws_instance`) can be used:
 **Note**: `awsls` output passes on profile and region information, so that `awsrm` knows for each resource in what
 account and region to delete it.
 
-Depending on the type of resource, deletion can take some time. For your convenience, this GIF runs faster than EC2
-instances are actually terminated; the shell prompt shows the real execution times in seconds.
+Depending on the type of resource, deletion can take some time. This GIF runs faster than EC2 instances are actually
+terminated; the shell prompt shows the real execution times in seconds.
 
 ### Delete across multiple accounts and regions
 
-List all instances in the AWS accounts associated with profile `myaccount1` and `myaccount2` in both regions `us-west-2`
-and `us-east-1` and pipe the result to `awsrm`:
+List all instances with `awsls` in the AWS accounts associated with profile `myaccount1` and `myaccount2` in both
+regions `us-west-2` and `us-east-1` and pipe the result to `awsrm`:
 
     awsls -p myaccount1,myaccount2 -r us-west-2,us-east-1 instance | awsrm
 
@@ -54,9 +53,12 @@ and `us-east-1` and pipe the result to `awsrm`:
 
 ### Delete by IDs
 
-Delete specific resources by ID, for example, some VPCs and IAM roles:
+Delete specific resources by ID, for example, some IAM roles
 
     awsrm iam_role db-cluster elb nginx
+
+or VPCs
+
     awsrm vpc vpc-1234 vpc-3456 vpc-7689
 
 ![](https://raw.githubusercontent.com/jckuester/awsrm/master/.github/img/awsrm-args.gif)
@@ -73,6 +75,9 @@ Input via arguments:
 Input via pipe:
 
     awsls [flags] <resource_type> | awsrm
+
+or
+
     echo "<resource_type> <id> <profile> <region>" | awsrm
 
 To see options available run `awsrm --help`.
