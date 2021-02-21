@@ -34,9 +34,9 @@ func mainExitCode() int {
 	}
 
 	flags.BoolVar(&logDebug, "debug", false, "Enable debug logging")
-	flags.BoolVar(&dryRun, "dry-run", false, "Don't deleteResources anything, just show what would be deleted")
-	flags.StringVarP(&profile, "profile", "p", "", "The AWS profile for the account to deleteResources resources in")
-	flags.StringVarP(&region, "region", "r", "", "The region to deleteResources resources in")
+	flags.BoolVar(&dryRun, "dry-run", false, "Don't delete anything, just show what would be deleted")
+	flags.StringVarP(&profile, "profile", "p", "", "The AWS profile for the account to delete resources in")
+	flags.StringVarP(&region, "region", "r", "", "The region to delete resources in")
 	flags.BoolVar(&version, "version", false, "Show application version")
 
 	_ = flags.Parse(os.Args[1:])
@@ -105,10 +105,10 @@ USAGE:
 
 The resource type and ID(s) are required arguments to delete resource(s).
 If no profile and/or region for an AWS account is given, credentials are
-looked for by the usual precedence of the AWS CLI: environment variables, AWS credentials file, etc.
+used by the usual precedence of the AWS CLI: environment variables, AWS credentials file, etc.
 
 Resources in multiple accounts and regions can be filtered and deleted by piping
-the output of awsls through grep, for example, to awsrm:
+the output of awsls through grep to awsrm:
 
   $ awsls [profile/region flags] vpc -a tags | grep Name=foo | awsrm
 
