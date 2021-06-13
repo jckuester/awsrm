@@ -90,7 +90,7 @@ You can download a specific version on the [releases page](https://github.com/jc
 following way to install to `./bin/`:
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/jckuester/awsrm/master/install.sh | sh -s v0.1.0
+curl -sSfL https://raw.githubusercontent.com/jckuester/awsrm/master/install.sh | sh -s v0.2.0
 ```
 
 ### Homebrew
