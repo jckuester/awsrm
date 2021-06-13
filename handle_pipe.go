@@ -39,7 +39,7 @@ func handleInputFromPipe(ctx context.Context, dryRun bool) int {
 		return 1
 	}
 
-	providers, err := terraform.NewProviderPool(ctx, clientKeys, "v3.16.0", "~/.awsrm", 1*time.Minute)
+	providers, err := terraform.NewProviderPool(ctx, clientKeys, terraformAwsProviderVersion, "~/.awsrm", 1*time.Minute)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
 			fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))

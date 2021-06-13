@@ -16,6 +16,8 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const terraformAwsProviderVersion = "v3.42.0"
+
 func main() {
 	os.Exit(mainExitCode())
 }

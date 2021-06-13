@@ -39,7 +39,7 @@ func handleInputFromArgs(ctx context.Context, args []string, profile, region str
 		regions = []string{region}
 	}
 
-	clients, err := aws.NewClientPool(profiles, regions)
+	clients, err := aws.NewClientPool(ctx, profiles, regions)
 	if err != nil {
 		fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
 		return 1
@@ -62,7 +62,7 @@ func handleInputFromArgs(ctx context.Context, args []string, profile, region str
 		clientKeys = append(clientKeys, k)
 	}
 
-	providers, err := terraform.NewProviderPool(ctx, clientKeys, "v3.16.0", "~/.awsrm", 1*time.Minute)
+	providers, err := terraform.NewProviderPool(ctx, clientKeys, terraformAwsProviderVersion, "~/.awsrm", 1*time.Minute)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
 			fmt.Fprint(os.Stderr, color.RedString("\nError: %s\n", err))
