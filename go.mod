@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/apex/log v1.9.0
 	github.com/fatih/color v1.10.0
+	github.com/jckuester/awsls v0.11.0 // indirect
 	github.com/gruntwork-io/terratest v0.32.7
 	github.com/jckuester/awstools-lib v0.0.0-20210613203943-40f73ed13902
 	github.com/jckuester/terradozer v0.1.4-0.20210524190016-3e6d42479316

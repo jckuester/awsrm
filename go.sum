@@ -302,6 +302,7 @@ github.com/aws/aws-sdk-go-v2/service/lightsail v1.1.1 h1:ubI8DMTlDoZBJhlhMyjGZUX
 github.com/aws/aws-sdk-go-v2/service/lightsail v1.1.1/go.mod h1:4zEDHc/kp4Kz7oC+hP31CxB1jcFiJ045885y4G4o7YY=
 github.com/aws/aws-sdk-go-v2/service/macie v1.1.1 h1:lBw8rXj+WAGjYhMxG8DUnvBQ84QpjZH2W/zSj/3jGTk=
 github.com/aws/aws-sdk-go-v2/service/macie v1.1.1/go.mod h1:wShNz65nSc26u4VzUR0UJsY2Sp/+StqKkjZxNAfwnL4=
+github.com/aws/aws-sdk-go-v2/service/macie2 v1.6.0/go.mod h1:EGdrZY8wsQFiB4bPJ4JwrZxFUyYISQtklUjTugamvPo=
 github.com/aws/aws-sdk-go-v2/service/macie2 v1.7.0 h1:Z0fB/AqLS/mH8R7IR/H8B2nv1we5uUaV7I2mnrq+WQc=
 github.com/aws/aws-sdk-go-v2/service/macie2 v1.7.0/go.mod h1:EGdrZY8wsQFiB4bPJ4JwrZxFUyYISQtklUjTugamvPo=
 github.com/aws/aws-sdk-go-v2/service/mediaconvert v1.1.1 h1:N5EacoWJNZBqDIyfkfrpHhISvy9ApHwpil14Sbj0VYg=
@@ -312,6 +313,7 @@ github.com/aws/aws-sdk-go-v2/service/mediastore v1.1.1 h1:tl/58Fn+6E9VTEmconNpPq
 github.com/aws/aws-sdk-go-v2/service/mediastore v1.1.1/go.mod h1:gevnsX8qzzxtNcZoSab72+PNtrfFmgb1n1Z4GKbgkxU=
 github.com/aws/aws-sdk-go-v2/service/mq v1.1.1 h1:T9PcYfzFG33LJii/wyJlj1nzfIVpqueOgTENyy/q95I=
 github.com/aws/aws-sdk-go-v2/service/mq v1.1.1/go.mod h1:iSRXUUOLM4VuytHZnGAPZ29PJi/iHdw8s0sUkuVVp4I=
+github.com/aws/aws-sdk-go-v2/service/mwaa v1.1.1/go.mod h1:J+Os4wwJULmwDOFjaGu+19yi2ZLZV0gK3PlIqcPWqtw=
 github.com/aws/aws-sdk-go-v2/service/mwaa v1.2.0 h1:3M3p8rRyVAr7vSS1RzVOMaDAvcH2D0+SL5Rqawl9+GI=
 github.com/aws/aws-sdk-go-v2/service/mwaa v1.2.0/go.mod h1:J+Os4wwJULmwDOFjaGu+19yi2ZLZV0gK3PlIqcPWqtw=
 github.com/aws/aws-sdk-go-v2/service/neptune v1.1.1 h1:PRjfY//opNv6mCnOCEwdQMEzgecUSfsA0Ga21BU2Bkg=
@@ -452,6 +454,7 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dimchansky/utfbom v1.1.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQvIirEdv+8=
+github.com/disneystreaming/go-ssmhelpers v0.2.1 h1:vdYa3NPnPgB4QaqA6yZ030DLaQqrmRrkyMZ/x8vFWag=
 github.com/disneystreaming/go-ssmhelpers v0.2.1/go.mod h1:1DzuN6mMT/+m+944fuHkN+L+BH/O4nHQXJh7iv1t6t4=
 github.com/dnaeon/go-vcr v0.0.0-20180920040454-5637cf3d8a31/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
 github.com/dnaeon/go-vcr v1.0.1/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
@@ -516,6 +519,7 @@ github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/me
 github.com/go-test/deep v1.0.1/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
 github.com/go-test/deep v1.0.3 h1:ZrJSEWsXzPOxaZnFteGEfooLba+ju3FYIbOrS+rQd68=
 github.com/go-test/deep v1.0.3/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
+github.com/gobwas/glob v0.2.3 h1:A4xDbljILXROh+kObIiy5kIaPYD8e96x1tgBhUI5J+Y=
 github.com/gobwas/glob v0.2.3/go.mod h1:d3Ez4x06l9bZtSvzIay5+Yzi0fmZzPgnTbPcKjJAkT8=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.0/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
@@ -668,8 +672,11 @@ github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANyt
 github.com/jckuester/awsls v0.8.2/go.mod h1:yn+/A3rsO+71qjLZ/9A0yYa7Jw34zLLpBEqHa0mthYo=
 github.com/jckuester/awsls v0.8.3 h1:Q8JKcgKCOYg2ZM5qIqXbA0gBUOR82zQ1YMKtBKzaktk=
 github.com/jckuester/awsls v0.8.3/go.mod h1:U0clHlW/c05kB1Cb4qO5pwGjxtR1CeHpgUzHhhI93CE=
+github.com/jckuester/awsls v0.11.0 h1:eIxzg5lGC310uB4rdHyqXk9e2W0awEcZX+wvHaUTrEE=
+github.com/jckuester/awsls v0.11.0/go.mod h1:t0xkzM5/0wz1JcvIQ489W5IOmtgpPotW4jlXEGpO2Mw=
 github.com/jckuester/awstools-lib v0.0.0-20210215194522-14607cce3470/go.mod h1:71+ozVxBDbhfKZH5ybJVxWo+mO1SVfpGiLfwXU5qD/w=
 github.com/jckuester/awstools-lib v0.0.0-20210220131009-cbbff634aac8/go.mod h1:VnXw3pHiRaNKPzypiBk+814DUarSyNBExo5D4y77G7o=
+github.com/jckuester/awstools-lib v0.0.0-20210524191941-23f0e367139d/go.mod h1:183IKDoURr0g8Sg/7mcz50KlJt0S/0TEFqK7RXV3giM=
 github.com/jckuester/awstools-lib v0.0.0-20210613203943-40f73ed13902 h1:fEE4uXB+e6zBfoQC/mXRf6acgYE2TBgCv49Boua4MmM=
 github.com/jckuester/awstools-lib v0.0.0-20210613203943-40f73ed13902/go.mod h1:FxGFVI6H8O+FEjkld4KU69k7g8Bk4QMdpf1RgmiE9lc=
 github.com/jckuester/terradozer v0.1.3/go.mod h1:ER3EJojZmO2u6lfcdgnmC+Nrg/TV2T2bacY5FZpqgks=
