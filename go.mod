@@ -1,6 +1,6 @@
 module github.com/jckuester/awsrm
 
-go 1.15
+go 1.16
 
 require (
 	github.com/apex/log v1.9.0
