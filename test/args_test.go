@@ -87,6 +87,19 @@ func TestAcc_Args_UserConfirmation(t *testing.T) {
 				"Are you sure you want to delete these resources (cannot be undone)? Only YES will be accepted.",
 			},
 		},
+		{
+			name:      "force",
+			extraArgs: []string{"--force"},
+			expectedLogs: []string{
+				"PROCEEDING WITH DELETION AND SKIPPING CONFIRMATION (FORCE)",
+				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
+			},
+			unexpectedLogs: []string{
+				"STARTING TO DELETE RESOURCES",
+				"TOTAL NUMBER OF DELETED RESOURCES:",
+				"Are you sure you want to delete these resources (cannot be undone)? Only YES will be accepted.",
+			},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

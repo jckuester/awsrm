@@ -51,7 +51,7 @@ func Update(resources []terraform.Resource, providers map[aws.ClientKey]provider
 }
 
 // Delete deletes the given resources via the Terraform AWS Provider.
-func Delete(resources []terraform.Resource, confirmDevice io.Reader, dryRun bool, done chan bool) {
+func Delete(resources []terraform.Resource, confirmDevice io.Reader, force bool, dryRun bool, done chan bool) {
 	if len(resources) == 0 {
 		internal.LogTitle("no resources found to delete")
 		done <- true
@@ -75,9 +75,13 @@ func Delete(resources []terraform.Resource, confirmDevice io.Reader, dryRun bool
 	internal.LogTitle(fmt.Sprintf("total number of resources that would be deleted: %d", len(resources)))
 
 	if !dryRun && len(resources) > 0 {
-		if !internal.UserConfirmedDeletion(confirmDevice) {
-			done <- true
-			return
+		if !force {
+			if !internal.UserConfirmedDeletion(confirmDevice) {
+				done <- true
+				return
+			}
+		} else {
+			internal.LogTitle("Proceeding with deletion and skipping confirmation (Force)")
 		}
 
 		internal.LogTitle("Starting to delete resources")

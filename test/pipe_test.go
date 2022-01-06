@@ -105,6 +105,25 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 				"TOTAL NUMBER OF DELETED RESOURCES:",
 			},
 		},
+		{
+			name: "single resource with force",
+			awslsArgs: []string{
+				"-p", testVars.AWSProfile1,
+				"-r", testVars.AWSRegion1,
+				"-a", "tags", "aws_vpc"},
+			grepArgs:  []string{"foo"},
+			awsrmArgs: []string{"--force"},
+			expectedLogs: []string{
+				"PROCEEDING WITH DELETION AND SKIPPING CONFIRMATION \\(FORCE\\)",
+				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
+				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
+					vpc1, testVars.AWSProfile1, testVars.AWSRegion1),
+			},
+			unexpectedLogs: []string{
+				"STARTING TO DELETE RESOURCES",
+				"TOTAL NUMBER OF DELETED RESOURCES:",
+			},
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
