@@ -37,7 +37,7 @@ func mainExitCode() int {
 	}
 
 	flags.BoolVar(&logDebug, "debug", false, "Enable debug logging")
-	flags.BoolVar(&force, "force", false, "Bypassess the confirmation prompt. Use with caution!")
+	flags.BoolVar(&force, "force", false, "Delete without asking for confirmation. Use with caution!")
 	flags.BoolVar(&dryRun, "dry-run", false, "Don't delete anything, just show what would be deleted")
 	flags.StringVarP(&profile, "profile", "p", "", "The AWS profile for the account to delete resources in")
 	flags.StringVarP(&region, "region", "r", "", "The region to delete resources in")

@@ -52,14 +52,15 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 	AssertVpcExists(t, vpc4, testVars.AWSProfile2, testVars.AWSRegion2)
 
 	tests := []struct {
-		name            string
-		awslsArgs       []string
-		grepArgs        []string
-		awsrmArgs       []string
-		envs            map[string]string
-		expectedLogs    []string
-		unexpectedLogs  []string
-		expectedErrCode int
+		name                    string
+		awslsArgs               []string
+		grepArgs                []string
+		awsrmArgs               []string
+		envs                    map[string]string
+		expectResourceIsDeleted bool
+		expectedLogs            []string
+		unexpectedLogs          []string
+		expectedErrCode         int
 	}{
 		{
 			name: "single resource",
@@ -67,8 +68,9 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 				"-p", testVars.AWSProfile1,
 				"-r", testVars.AWSRegion1,
 				"-a", "tags", "aws_vpc"},
-			grepArgs:  []string{"foo"},
-			awsrmArgs: []string{"--dry-run"},
+			grepArgs:                []string{"foo"},
+			awsrmArgs:               []string{"--dry-run"},
+			expectResourceIsDeleted: false,
 			expectedLogs: []string{
 				"SHOWING RESOURCES THAT WOULD BE DELETED \\(DRY RUN\\)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
@@ -86,8 +88,9 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 				"-p", fmt.Sprintf("%s,%s", testVars.AWSProfile1, testVars.AWSProfile2),
 				"-r", fmt.Sprintf("%s,%s", testVars.AWSRegion1, testVars.AWSRegion2),
 				"-a", "tags", "aws_vpc"},
-			grepArgs:  []string{"awsrm=test-acc"},
-			awsrmArgs: []string{"--dry-run"},
+			grepArgs:                []string{"awsrm=test-acc"},
+			awsrmArgs:               []string{"--dry-run"},
+			expectResourceIsDeleted: false,
 			expectedLogs: []string{
 				"SHOWING RESOURCES THAT WOULD BE DELETED \\(DRY RUN\\)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 4",
@@ -106,22 +109,22 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 			},
 		},
 		{
-			name: "single resource with force",
+			name: "force flag",
 			awslsArgs: []string{
 				"-p", testVars.AWSProfile1,
 				"-r", testVars.AWSRegion1,
 				"-a", "tags", "aws_vpc"},
-			grepArgs:  []string{"foo"},
-			awsrmArgs: []string{"--force"},
+			grepArgs:                []string{"foo"},
+			awsrmArgs:               []string{"--force"},
+			expectResourceIsDeleted: true,
 			expectedLogs: []string{
-				"PROCEEDING WITH DELETION AND SKIPPING CONFIRMATION \\(FORCE\\)",
+				"PROCEEDING WITH DELETION AND SKIPPING CONFIRMATION (FORCE)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
 					vpc1, testVars.AWSProfile1, testVars.AWSRegion1),
 			},
 			unexpectedLogs: []string{
-				"STARTING TO DELETE RESOURCES",
-				"TOTAL NUMBER OF DELETED RESOURCES:",
+				"Are you sure you want to delete these resources (cannot be undone)? Only YES will be accepted.",
 			},
 		},
 	}
