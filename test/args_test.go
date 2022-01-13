@@ -88,21 +88,21 @@ func TestAcc_Args_UserConfirmation(t *testing.T) {
 			},
 		},
 		{
-			name:      "force",
-			extraArgs: []string{"--force"},
+			name:                    "force",
+			extraArgs:               []string{"--force"},
+			expectResourceIsDeleted: true,
 			expectedLogs: []string{
 				"PROCEEDING WITH DELETION AND SKIPPING CONFIRMATION (FORCE)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
 				"TOTAL NUMBER OF DELETED RESOURCES: 1",
 			},
 			unexpectedLogs: []string{
-				"STARTING TO DELETE RESOURCES",
 				"Are you sure you want to delete these resources (cannot be undone)? Only YES will be accepted.",
 			},
 		},
 		{
 			name:      "force and dry run",
-			extraArgs: []string{"--force --dry-run"},
+			extraArgs: []string{"--force", "--dry-run"},
 			expectedLogs: []string{
 				"SHOWING RESOURCES THAT WOULD BE DELETED (DRY RUN)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",

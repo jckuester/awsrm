@@ -68,9 +68,8 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 				"-p", testVars.AWSProfile1,
 				"-r", testVars.AWSRegion1,
 				"-a", "tags", "aws_vpc"},
-			grepArgs:                []string{"foo"},
-			awsrmArgs:               []string{"--dry-run"},
-			expectResourceIsDeleted: false,
+			grepArgs:  []string{"foo"},
+			awsrmArgs: []string{"--dry-run"},
 			expectedLogs: []string{
 				"SHOWING RESOURCES THAT WOULD BE DELETED \\(DRY RUN\\)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
@@ -88,9 +87,8 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 				"-p", fmt.Sprintf("%s,%s", testVars.AWSProfile1, testVars.AWSProfile2),
 				"-r", fmt.Sprintf("%s,%s", testVars.AWSRegion1, testVars.AWSRegion2),
 				"-a", "tags", "aws_vpc"},
-			grepArgs:                []string{"awsrm=test-acc"},
-			awsrmArgs:               []string{"--dry-run"},
-			expectResourceIsDeleted: false,
+			grepArgs:  []string{"awsrm=test-acc"},
+			awsrmArgs: []string{"--dry-run"},
 			expectedLogs: []string{
 				"SHOWING RESOURCES THAT WOULD BE DELETED \\(DRY RUN\\)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 4",
@@ -118,8 +116,9 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 			awsrmArgs:               []string{"--force"},
 			expectResourceIsDeleted: true,
 			expectedLogs: []string{
-				"PROCEEDING WITH DELETION AND SKIPPING CONFIRMATION (FORCE)",
+				"PROCEEDING WITH DELETION AND SKIPPING CONFIRMATION \\(FORCE\\)",
 				"TOTAL NUMBER OF RESOURCES THAT WOULD BE DELETED: 1",
+				"TOTAL NUMBER OF DELETED RESOURCES: 1",
 				fmt.Sprintf("aws_vpc\\s+id=%s\\s+profile=%s\\s+region=%s",
 					vpc1, testVars.AWSProfile1, testVars.AWSRegion1),
 			},
@@ -144,7 +143,11 @@ func TestAcc_Pipe_InputFromAwsls(t *testing.T) {
 				assert.NoError(t, err)
 			}
 
-			AssertVpcExists(t, vpc1, testVars.AWSProfile1, testVars.AWSRegion1)
+			if tc.expectResourceIsDeleted {
+				AssertVpcDeleted(t, vpc1, testVars.AWSProfile1, testVars.AWSRegion1)
+			} else {
+				AssertVpcExists(t, vpc1, testVars.AWSProfile1, testVars.AWSRegion1)
+			}
 			AssertVpcExists(t, vpc2, testVars.AWSProfile1, testVars.AWSRegion2)
 			AssertVpcExists(t, vpc3, testVars.AWSProfile2, testVars.AWSRegion1)
 			AssertVpcExists(t, vpc4, testVars.AWSProfile2, testVars.AWSRegion2)
