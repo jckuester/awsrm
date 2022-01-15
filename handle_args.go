@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func handleInputFromArgs(ctx context.Context, args []string, profile, region string, dryRun bool) int {
+func handleInputFromArgs(ctx context.Context, args []string, profile, region string, force bool, dryRun bool) int {
 	log.Debug("input via args")
 
 	rType := resource.PrefixResourceType(args[0])
@@ -89,7 +89,7 @@ func handleInputFromArgs(ctx context.Context, args []string, profile, region str
 	}
 
 	doneDelete := make(chan bool, 1)
-	go func() { resource.Delete(resources, os.Stdin, dryRun, doneDelete) }()
+	go func() { resource.Delete(resources, os.Stdin, force, dryRun, doneDelete) }()
 	select {
 	case <-ctx.Done():
 		return 0

@@ -19,7 +19,7 @@ func isInputFromPipe() bool {
 	return fileInfo.Mode()&os.ModeNamedPipe != 0
 }
 
-func handleInputFromPipe(ctx context.Context, dryRun bool) int {
+func handleInputFromPipe(ctx context.Context, force bool, dryRun bool) int {
 	log.Debug("input via pipe")
 
 	resources, err := resource.Read(os.Stdin)
@@ -72,7 +72,7 @@ func handleInputFromPipe(ctx context.Context, dryRun bool) int {
 
 	doneDelete := make(chan bool, 1)
 	go func() {
-		resource.Delete(resources, confirmDevice, dryRun, doneDelete)
+		resource.Delete(resources, confirmDevice, force, dryRun, doneDelete)
 	}()
 	select {
 	case <-ctx.Done():
