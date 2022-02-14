@@ -10,7 +10,7 @@ import (
 	"github.com/jckuester/awsrm/internal"
 	"github.com/jckuester/awstools-lib/aws"
 	"github.com/jckuester/awstools-lib/terraform"
-	"github.com/jckuester/terradozer/pkg/provider"
+	"github.com/jckuester/awstools-lib/terraform/provider"
 	terradozerRes "github.com/jckuester/terradozer/pkg/resource"
 )
 
@@ -28,7 +28,7 @@ func Update(resources []terraform.Resource, providers map[aws.ClientKey]provider
 	var resourcesToDelete []terraform.Resource
 
 	for _, r := range withUpdatedState {
-		if r.State().IsNull() {
+		if r.State.IsNull() {
 			resourcesAlreadyDeleted = append(resourcesAlreadyDeleted, r)
 		} else {
 			resourcesToDelete = append(resourcesToDelete, r)
@@ -63,7 +63,7 @@ func Delete(resources []terraform.Resource, confirmDevice io.Reader, force bool,
 		internal.LogTitle("showing resources that would be deleted (dry run)")
 	}
 	for _, r := range resources {
-		if r.State() != nil {
+		if r.State != nil {
 			log.WithFields(log.Fields{
 				"id":      r.ID,
 				"profile": r.Profile,
@@ -120,7 +120,7 @@ func Read(r io.Reader) ([]terraform.Resource, error) {
 
 		profile := rAttrs[2]
 
-		if profile == `N\A` {
+		if profile == `N/A` {
 			profile = ""
 		}
 
@@ -144,7 +144,9 @@ func convertToDestroyable(resources []terraform.Resource) []terradozerRes.Destro
 	var result []terradozerRes.DestroyableResource
 
 	for _, r := range resources {
-		result = append(result, r.UpdatableResource.(terradozerRes.DestroyableResource))
+		result = append(result, terradozerRes.Resource{
+			Resource: r,
+		})
 	}
 
 	return result
