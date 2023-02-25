@@ -12,5 +12,5 @@ require (
 	github.com/onsi/gomega v1.10.5
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/net v0.0.0-20210220033124-5f55cee0dc0d
+	golang.org/x/net v0.7.0
 )
